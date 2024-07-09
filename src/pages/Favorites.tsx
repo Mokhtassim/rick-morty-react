@@ -1,34 +1,52 @@
-import React, { useState, useEffect } from 'react'
-import { Grid } from '@mui/material'
-import CharacterCard from '../components/CharacterCard'
-import { Character } from '../types'
+import React from "react";
+import { Grid } from "@mui/material";
+import CharacterCard from "../components/CharacterCard";
+import { Character } from "../types";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { removeFavorite } from "../redux/favoritesSlice";
 
 const Favorites: React.FC = () => {
-  const [favorites, setFavorites] = useState<Character[]>([])
-
-  useEffect(() => {
-    setFavorites(JSON.parse(localStorage.getItem('favorites') || '[]'))
-  }, [])
+  const favorites = useSelector(
+    (state: RootState) => state.favorites.favorites
+  );
+  const dispatch = useDispatch();
 
   const toggleFavorite = (character: Character) => {
-    const updatedFavorites = favorites.filter(fav => fav.id !== character.id)
-    setFavorites(updatedFavorites)
-    localStorage.setItem('favorites', JSON.stringify(updatedFavorites))
-  }
+    dispatch(removeFavorite(character.id));
+  };
 
   return (
-    <Grid container spacing={2}>
-      {favorites.map(character => (
-        <Grid item xs={12} sm={6} md={4} key={character.id}>
-          <CharacterCard
-            character={character}
-            isFavorite={true}
-            onToggleFavorite={toggleFavorite}
-          />
-        </Grid>
-      ))}
+    <Grid
+      container
+      spacing={2}
+      sx={{
+        marginTop: "4rem",
+        padding: "2rem",
+      }}
+      marginTop={"4rem"}
+    >
+      {favorites.length === 0 ? (
+        <div
+          style={{
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
+          <p>Not Found Favorites Characters</p>
+        </div>
+      ) : (
+        favorites.map((character) => (
+          <Grid item xs={12} sm={6} md={3} key={character.id}>
+            <CharacterCard
+              character={character}
+              onToggleFavorite={toggleFavorite}
+            />
+          </Grid>
+        ))
+      )}
     </Grid>
-  )
-}
+  );
+};
 
-export default Favorites
+export default Favorites;

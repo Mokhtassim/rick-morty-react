@@ -1,19 +1,51 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { Card, CardContent, CardMedia, Typography, Button } from '@mui/material'
-import { Favorite, FavoriteBorder } from '@mui/icons-material'
-import { Character } from '../types'
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  IconButton,
+} from "@mui/material";
+import { Favorite, FavoriteBorder } from "@mui/icons-material";
+import { Character } from "../types";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 interface CharacterCardProps {
-  character: Character
-  isFavorite: boolean
-  onToggleFavorite: (character: Character) => void
+  character: Character;
+  onToggleFavorite: (character: Character) => void;
 }
 
-const CharacterCard: React.FC<CharacterCardProps> = ({ character, isFavorite, onToggleFavorite }) => {
+const CharacterCard: React.FC<CharacterCardProps> = ({
+  character,
+  onToggleFavorite,
+}) => {
+  const favorites = useSelector(
+    (state: RootState) => state.favorites.favorites
+  );
+
+  const isFavorite = (id: number) => favorites.some((fav) => fav.id === id);
   return (
     <Card>
-      <CardMedia component="img" image={character.image} alt={character.name} />
+      <IconButton
+        sx={{ position: "absolute" }}
+        onClick={() => onToggleFavorite(character)}
+      >
+        {isFavorite(character.id) ? (
+          <Favorite color="error" />
+        ) : (
+          <FavoriteBorder />
+        )}
+      </IconButton>
+      <Link to={`/character/${character.id}`}>
+        <CardMedia
+          component="img"
+          image={character.image}
+          alt={character.name}
+        />
+      </Link>
       <CardContent>
         <Typography variant="h5" component="div">
           <Link to={`/character/${character.id}`}>{character.name}</Link>
@@ -21,17 +53,17 @@ const CharacterCard: React.FC<CharacterCardProps> = ({ character, isFavorite, on
         <Typography variant="body2" color="text.secondary">
           {character.status} - {character.species} - {character.gender}
         </Typography>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={isFavorite ? <Favorite /> : <FavoriteBorder />}
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={isFavorite(character.id) ? <Favorite /> : <FavoriteBorder />}
           onClick={() => onToggleFavorite(character)}
         >
-          {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+          {isFavorite(character.id) ? "Remove from Favorites" : "Add to Favorites"}
         </Button>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default CharacterCard
+export default CharacterCard;

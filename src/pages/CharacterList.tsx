@@ -3,60 +3,62 @@ import axios from "axios";
 import { Box, Grid } from "@mui/material";
 import { Character } from "../types";
 import { CharacterCard, Pagination, CharacterFilters } from "../components";
+import { addFavorite, removeFavorite } from "../redux/favoritesSlice";
+import { RootState } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
 
 const CharacterList: React.FC = () => {
+  const initialFilter = {
+    search: "",
+    status: "",
+    species: "",
+    gender: "",
+  };
   const [characters, setCharacters] = useState<Character[]>([]);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [species, setSpecies] = useState("");
-  const [gender, setGender] = useState("");
+  const [filter, setFilter] = useState(initialFilter);
 
+  const dispatch = useDispatch();
+  const favorites = useSelector(
+    (state: RootState) => state.favorites.favorites
+  );
+
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilter({
+      ...filter,
+      [filterName]: value,
+    });
+  };
   useEffect(() => {
     axios
       .get(
-        `https://rickandmortyapi.com/api/character/?page=${page}&name=${search}&status=${status}&species=${species}&gender=${gender}`
+        `https://rickandmortyapi.com/api/character/?page=${page}&name=${filter.search}&status=${filter.status}&species=${filter.species}&gender=${filter.gender}`
       )
       .then((res) => setCharacters(res.data.results));
-  }, [page, search, status, species, gender]);
+  }, [page, filter]);
 
   const toggleFavorite = (character: Character) => {
-    let favorites: Character[] = JSON.parse(
-      localStorage.getItem("favorites") || "[]"
-    );
-    if (favorites.find((fav) => fav.id === character.id)) {
-      favorites = favorites.filter((fav) => fav.id !== character.id);
+    if (favorites.some((fav) => fav.id === character.id)) {
+      dispatch(removeFavorite(character.id));
     } else {
-      favorites.push(character);
+      dispatch(addFavorite(character));
     }
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-  };
-
-  const isFavorite = (character: Character) => {
-    const favorites: Character[] = JSON.parse(
-      localStorage.getItem("favorites") || "[]"
-    );
-    return favorites.some((fav) => fav.id === character.id);
   };
 
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box sx={{ padding: "2rem", marginTop: "4rem" }}>
       <CharacterFilters
-        search={search}
-        status={status}
-        species={species}
-        gender={gender}
-        onSearchChange={setSearch}
-        onStatusChange={setStatus}
-        onSpeciesChange={setSpecies}
-        onGenderChange={setGender}
+        filter={filter}
+        onFilterChange={handleFilterChange}
+        resetFilter={() => {
+          setFilter(initialFilter);
+        }}
       />
       <Grid container spacing={2}>
         {characters.map((character) => (
-          <Grid item xs={12} sm={6} md={4} key={character.id}>
+          <Grid item xs={12} sm={6} md={3} key={character.id}>
             <CharacterCard
               character={character}
-              isFavorite={isFavorite(character)}
               onToggleFavorite={toggleFavorite}
             />
           </Grid>
