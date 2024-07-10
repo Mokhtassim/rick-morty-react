@@ -1,31 +1,51 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useParams } from "react-router-dom";
-import { Box, Card, CardContent, CardMedia, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { Character } from "../types";
+import axiosInstance from "../axios";
+import { Message } from "../components";
 
 const CharacterDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [character, setCharacter] = useState<Character | null>(null);
 
   useEffect(() => {
-    axios
-      .get(`https://rickandmortyapi.com/api/character/${id}`)
-      .then((res) => setCharacter(res.data));
+    axiosInstance
+      .get(`/character/${id}`)
+      .then((res) => setCharacter(res.data))
+      .catch((err) => console.log(err));
   }, [id]);
 
-  if (!character) return <div>Loading...</div>;
+  const theme = useTheme();
+  // Detect screen mobile
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  return (
+  return !character ? (
+    <Message color="error" text="Not found Character Detail" />
+  ) : (
     <Box
       sx={{
         display: "flex",
         justifyContent: "center",
         padding: 2,
-        marginTop: "1rem",
+        marginTop: "4rem",
       }}
     >
-      <Card sx={{ display: "flex", gap: "1rem" }}>
+      <Card
+        sx={{
+          display: "flex",
+          gap: "1rem",
+          flexDirection: isMobile ? "column" : "row",
+        }}
+      >
         <CardMedia
           component="img"
           image={character.image}
